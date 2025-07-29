@@ -1,29 +1,56 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import "react-native-reanimated";
+import "./global.css";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+import TView from "@/components/TView";
+import { useRoot } from "@/hooks/useRoot";
+import { ActivityIndicator } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+	const { isLoading, isLoggedIn } = useRoot();
+	const insets = useSafeAreaInsets();
+	const [loaded] = useFonts({
+		SpaceMono: require("@/assets/fonts/SpaceMono-Regular.ttf"),
+	});
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
-  }
+	if (!loaded || isLoading) {
+		return (
+			<TView
+				style={{ paddingTop: insets.top }}
+				className="w-full flex items-center justify-center"
+			>
+				<ActivityIndicator size="large" color="#4fd1c7" />
+			</TView>
+		);
+	}
 
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
+	return (
+		<TView style={{ paddingTop: insets.top }}>
+			<StatusBar style="auto" />
+			{!isLoggedIn ? (
+				<Stack
+					screenOptions={{
+						headerShown: false,
+					}}
+				>
+					<Stack.Screen
+						name="auth/index"
+						options={{ title: "Home" }}
+					/>
+				</Stack>
+			) : (
+				<Stack
+					screenOptions={{
+						headerShown: false,
+					}}
+				>
+					<Stack.Screen name="(tabs)" />
+					<Stack.Screen name="+not-found" />
+				</Stack>
+			)}
+		</TView>
+	);
 }
