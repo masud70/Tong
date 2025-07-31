@@ -1,56 +1,66 @@
+import ThemedView from "@/components/ThemedView";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
+import { ActivityIndicator, StatusBar } from "react-native";
 import "react-native-reanimated";
 import "./global.css";
 
-import TView from "@/components/TView";
-import { useRoot } from "@/hooks/useRoot";
-import { ActivityIndicator } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 export default function RootLayout() {
-	const { isLoading, isLoggedIn } = useRoot();
-	const insets = useSafeAreaInsets();
-	const [loaded] = useFonts({
+	const [fontsLoaded] = useFonts({
 		SpaceMono: require("@/assets/fonts/SpaceMono-Regular.ttf"),
+		Roboto: require("@/assets/fonts/Roboto-VariableFont_wdth,wght.ttf"),
+		RobotoBold: require("@/assets/fonts/Roboto-Bold.ttf"),
+		RobotoExtraBold: require("@/assets/fonts/Roboto-ExtraBold.ttf"),
+		RobotoSemiBold: require("@/assets/fonts/Roboto-SemiBold.ttf"),
+		RobotoItalic: require("@/assets/fonts/Roboto-Italic-VariableFont_wdth,wght.ttf"),
 	});
 
-	if (!loaded || isLoading) {
+	if (!fontsLoaded) {
 		return (
-			<TView
-				style={{ paddingTop: insets.top }}
-				className="w-full flex items-center justify-center"
-			>
+			<ThemedView className="w-full flex items-center justify-center">
 				<ActivityIndicator size="large" color="#4fd1c7" />
-			</TView>
+			</ThemedView>
 		);
 	}
 
 	return (
-		<TView style={{ paddingTop: insets.top }}>
-			<StatusBar style="auto" />
-			{!isLoggedIn ? (
-				<Stack
-					screenOptions={{
-						headerShown: false,
-					}}
-				>
-					<Stack.Screen
-						name="auth/index"
-						options={{ title: "Home" }}
-					/>
-				</Stack>
-			) : (
-				<Stack
-					screenOptions={{
-						headerShown: false,
-					}}
-				>
-					<Stack.Screen name="(tabs)" />
-					<Stack.Screen name="+not-found" />
-				</Stack>
-			)}
-		</TView>
+		<ThemedView>
+			<StatusBar />
+			<Stack
+				screenOptions={{
+					headerShown: false,
+				}}
+			>
+				<Stack.Screen
+					name="splash/index"
+					options={{ title: "Initial Splash Screen" }}
+				/>
+			</Stack>
+		</ThemedView>
+
+		// <TView style={{ paddingTop: insets.top }}>
+		// 	<StatusBar style="auto" />
+		// 	{!isLoggedIn ? (
+		// 		<Stack
+		// 			screenOptions={{
+		// 				headerShown: false,
+		// 			}}
+		// 		>
+		// 			<Stack.Screen
+		// 				name="auth/index"
+		// 				options={{ title: "Home" }}
+		// 			/>
+		// 		</Stack>
+		// 	) : (
+		// 		<Stack
+		// 			screenOptions={{
+		// 				headerShown: false,
+		// 			}}
+		// 		>
+		// 			<Stack.Screen name="(tabs)" />
+		// 			<Stack.Screen name="+not-found" />
+		// 		</Stack>
+		// 	)}
+		// </TView>
 	);
 }

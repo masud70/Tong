@@ -1,4 +1,4 @@
-import TView from "@/components/TView";
+import ThemedView from "@/components/ThemedView";
 import { useAuth } from "@/hooks/useAuth";
 import React from "react";
 import { Image, Text, TouchableOpacity } from "react-native";
@@ -6,7 +6,7 @@ import { Image, Text, TouchableOpacity } from "react-native";
 const Profile = () => {
 	const { handleSignOut } = useAuth();
 	return (
-		<TView className="items-center gap-2 p-2">
+		<ThemedView className="items-center gap-2 p-2">
 			<Image
 				source={require("@/assets/images/tong.png")}
 				className="w-36 h-36 rounded-full"
@@ -18,7 +18,7 @@ const Profile = () => {
 			>
 				<Text className="text-white font-bold text-lg">Sign Out</Text>
 			</TouchableOpacity>
-		</TView>
+		</ThemedView>
 	);
 };
 

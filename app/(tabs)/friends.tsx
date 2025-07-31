@@ -1,6 +1,6 @@
 import FriendListCard from "@/components/FriendListCard";
 import FriendRequestCard from "@/components/FriendRequestCard";
-import TView from "@/components/TView";
+import ThemedView from "@/components/ThemedView";
 import { useFriend } from "@/hooks/useFriend";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import React from "react";
@@ -26,7 +26,7 @@ const Friends = () => {
 		myFriends,
 	} = useFriend();
 	return (
-		<TView className="px-4 pt-2 pb-1">
+		<ThemedView className="px-4 pt-2 pb-1">
 			<KeyboardAvoidingView
 				behavior={Platform.OS === "ios" ? "padding" : undefined}
 				className="flex-1"
@@ -89,7 +89,7 @@ const Friends = () => {
 					</View>
 				</ScrollView>
 			</KeyboardAvoidingView>
-		</TView>
+		</ThemedView>
 	);
 };
 

@@ -1,7 +1,7 @@
 import { useCommon } from "@/hooks/useCommon";
 import { useMessage } from "@/hooks/useMessage";
-import { useRoot } from "@/hooks/useRoot";
 import { ChatScreenProps, ChatUser, Message } from "@/types/message";
+import { useAuthStore } from "@/zustand/stores";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import {
@@ -27,10 +27,10 @@ const mockChatUser: ChatUser = {
 	lastSeen: new Date(),
 };
 
-const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => {
+const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
 	const { chatId } = useLocalSearchParams();
 	const router = useRouter();
-	const { session } = useRoot();
+	const session = useAuthStore.use.session();
 	const { formatDate, formatTime } = useCommon();
 	const {
 		messages,

@@ -14,12 +14,15 @@ export interface ChatType {
 	chat_title: string;
 	created_at: Date;
 	avatar?: string;
-    isOnline?: boolean;
-    lastMessage?: string;
-    unreadCount?: number;
+	isOnline?: boolean;
+	lastMessage?: string;
+	unreadCount?: number;
 	type: "personal" | "group";
 	chat_members: {
-		user_id: string;
+		id: string;
+		first_name: string;
+		last_name: string;
+		email: string;
 	}[];
 }
 

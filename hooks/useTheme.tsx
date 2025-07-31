@@ -1,8 +1,12 @@
 import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "react-native";
+import { useAuthStore } from "@/zustand/stores";
 
 export const useTheme = () => {
-	const colorScheme = useColorScheme() || "light";
-	const theme = Colors[colorScheme];
-	return theme;
+	const colorScheme = useAuthStore.use.theme();
+	const setTheme = useAuthStore.use.setTheme();
+
+	const theme = {
+		color: Colors[colorScheme],
+	};
+	return { theme, setTheme };
 };

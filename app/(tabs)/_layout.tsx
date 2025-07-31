@@ -8,35 +8,35 @@ import React from "react";
 import { Platform } from "react-native";
 
 export default function TabLayout() {
-	const theme = useTheme();
+	const { theme } = useTheme();
 
 	return (
 		<Tabs
 			screenOptions={{
-				tabBarActiveTintColor: theme.tint,
+				tabBarActiveTintColor: theme.color.tint,
 				headerShown: true,
 				headerStyle: {
 					height: 50,
-					backgroundColor: theme.TabBarBackgroundColor,
+					backgroundColor: theme.color.primary,
 				},
 				headerTitleStyle: {
-					fontSize: 22,
-					fontWeight: "600",
-					color: theme.tint,
+					fontSize: 25,
+					color: theme.color.tint,
+                    fontFamily: 'RobotoBold'
 				},
 				headerTitleAlign: "center",
 				tabBarButton: HapticTab,
 				tabBarBackground: TabBarBackground,
 				tabBarStyle: {
-					backgroundColor: theme.TabBarBackgroundColor,
+					backgroundColor: theme.color.TabBarBackgroundColor,
 					borderTopWidth: 0,
 					height: 55,
 					paddingBottom: Platform.OS === "ios" ? 10 : 0,
 				},
 				tabBarLabelStyle: {
-					fontSize: 12,
-					fontWeight: "600",
-					color: theme.text,
+					fontSize: 14,
+                    fontFamily: 'RobotoSemiBold',
+					color: theme.color.text,
 				},
 			}}
 		>
@@ -88,7 +88,7 @@ type TabIconProps = {
 };
 
 export const TabIcon: React.FC<TabIconProps> = ({ name, focused }) => {
-	const theme = useTheme();
+	const { theme } = useTheme();
 
 	const IconMap: Record<TabName, keyof typeof Ionicons.glyphMap> = {
 		chats: "chatbox-ellipses",
@@ -101,7 +101,11 @@ export const TabIcon: React.FC<TabIconProps> = ({ name, focused }) => {
 		<IconSymbol
 			size={28}
 			name={IconMap[name]}
-			color={focused ? theme.tabIconSelected : theme.tabIconDefault}
+			color={
+				focused
+					? theme.color.tabIconSelected
+					: theme.color.tabIconDefault
+			}
 		/>
 	);
 };
