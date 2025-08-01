@@ -15,6 +15,7 @@ interface ProfileImageProps extends Omit<ImageProps, "source"> {
 	isOnline?: boolean;
 	rounded?: boolean;
 	isGroup?: boolean;
+	className?: string;
 }
 
 const ProfileImage = ({
@@ -30,6 +31,7 @@ const ProfileImage = ({
 	showOnlineStatus = false,
 	isOnline = false,
 	rounded = true,
+	className,
 	style,
 	...props
 }: ProfileImageProps) => {
@@ -125,7 +127,10 @@ const ProfileImage = ({
 	};
 
 	const content = (
-		<View style={containerStyle}>
+		<View
+			style={containerStyle}
+			className={!onPress ? className : undefined}
+		>
 			{renderImage()}
 			{showOnlineStatus && <View style={onlineStatusStyle} />}
 		</View>
@@ -134,7 +139,11 @@ const ProfileImage = ({
 	// If onPress is provided, wrap in TouchableOpacity
 	if (onPress) {
 		return (
-			<TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+			<TouchableOpacity
+				onPress={onPress}
+				activeOpacity={0.8}
+				className={!onPress ? undefined : className}
+			>
 				{content}
 			</TouchableOpacity>
 		);

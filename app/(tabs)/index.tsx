@@ -67,7 +67,11 @@ const Chats = () => {
 		>
 			{/* Avatar */}
 			<View className="mr-3">
-				<ProfileImage size={40} showBorder />
+				<ProfileImage
+					size={40}
+					showBorder
+					isGroup={item.type === "group"}
+				/>
 			</View>
 
 			{/* Chat content */}

@@ -17,7 +17,7 @@ export interface Permission {
 }
 
 export interface AuthState {
-	authUser: User | null;
+	authUser: User | undefined;
 	isLoading: boolean;
 	error: string | null;
 	message: string | null;

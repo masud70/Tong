@@ -3,6 +3,7 @@ import { StyleSheet } from "react-native";
 export const Const = {
 	color: {
 		background: "#0f2032",
+		primaryOpacity: "#23B82BB5",
 	},
 	text: {
 		size: {
@@ -69,7 +70,6 @@ export const styles = StyleSheet.create({
 		fontSize: Const.text.size.xxl,
 		width: 300,
 		textAlign: "center",
-		fontStyle: "normal",
 		fontFamily: Const.text.family.RobotoSemiBold,
 	},
 	logoText: {

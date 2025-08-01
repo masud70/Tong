@@ -21,11 +21,11 @@ interface AuthActions {
 	setIsInitialized: (initialized: boolean) => void;
 	setTheme: (theme: "light" | "dark") => void;
 	getAuthUser: () => Promise<User | null>;
-	setAuthUser: (user: User | null) => void;
+	setAuthUser: (user: User | undefined) => void;
 }
 
 const initialState: AuthState = {
-	authUser: null,
+	authUser: undefined,
 	isLoading: false,
 	error: null,
 	message: null,
@@ -53,7 +53,7 @@ export const useAuthStoreBase = create<AuthSlice>()(
 					}
 				},
 
-				setAuthUser: (user: User | null) => {
+				setAuthUser: (user: User | undefined) => {
 					set((state) => {
 						state.authUser = user;
 					});
@@ -95,6 +95,7 @@ export const useAuthStoreBase = create<AuthSlice>()(
 					try {
 						set((state) => {
 							state.session = newSession;
+							state.authUser = newSession?.user;
 						});
 					} catch (error) {
 						console.log("Session update error:", error);

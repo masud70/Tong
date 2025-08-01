@@ -1,5 +1,5 @@
 import { useFriend } from "@/hooks/useFriend";
-import { FriendRequestType } from "@/types/friends";
+import { Friend } from "@/types/friends";
 import React from "react";
 import {
 	ActivityIndicator,
@@ -9,7 +9,7 @@ import {
 	View,
 } from "react-native";
 
-const FriendRequestCard = ({ request }: { request: FriendRequestType }) => {
+const FriendRequestCard = ({ request }: { request: Friend }) => {
 	const { isLoading, acceptFriendRequest } = useFriend();
 	return (
 		<View className="border border-gray-300 rounded-md p-2 bg-gray-100 flex flex-row items-center justify-between">
@@ -22,16 +22,10 @@ const FriendRequestCard = ({ request }: { request: FriendRequestType }) => {
 				</View>
 				<View>
 					<Text className="font-bold text-lg">
-						{request.users.first_name
-							? request.users.first_name +
-							  " " +
-							  request.users.last_name
-							: request.users.email
-									.split("@")[0]
-									.substring(0, 30)}
+						{request.displayName.substring(0, 30)}
 					</Text>
 					<Text className="text-gray-600">
-						{request.users.email.substring(0, 30)}
+						{request.email.substring(0, 30)}
 					</Text>
 				</View>
 			</View>
@@ -39,7 +33,7 @@ const FriendRequestCard = ({ request }: { request: FriendRequestType }) => {
 			<View>
 				{!isLoading ? (
 					<TouchableOpacity
-						onPress={() => acceptFriendRequest(request.user_id)}
+						onPress={() => acceptFriendRequest(request.id)}
 						className="flex flex-row rounded-lg border px-2 py-1 bg-[#344D67]"
 					>
 						<Text className="font-bold text-lg text-white">

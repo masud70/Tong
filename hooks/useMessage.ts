@@ -1,9 +1,10 @@
 import { supabase } from "@/lib/supabase";
 import { ChatType } from "@/types/chats";
-import { Message, MessagePayloadType } from "@/types/message";
+import { Message, MessageType } from "@/types/message";
+import { useAuthStore } from "@/zustand/stores";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { useRoot } from "./useRoot";
+import { Alert } from "react-native";
 
 export const useMessage = ({ chatId }: { chatId: number | null }) => {
 	const [chat, setChat] = useState<ChatType>();
@@ -13,17 +14,14 @@ export const useMessage = ({ chatId }: { chatId: number | null }) => {
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string | null>(null);
 	const [replyingTo, setReplyingTo] = useState<Message | null>(null);
-	const { session } = useRoot();
+	const session = useAuthStore.use.session();
+	const authUser = useAuthStore.use.authUser();
 	const router = useRouter();
-
-	useEffect(() => {
-		fetchMessages();
-		fetchChat();
-	}, []);
 
 	useEffect(() => {
 		if (!chatId) return;
 		fetchMessages();
+		fetchChat();
 	}, [chatId]);
 
 	useEffect(() => {
@@ -39,45 +37,100 @@ export const useMessage = ({ chatId }: { chatId: number | null }) => {
 					filter: `chat_id=eq.${chat?.id}`,
 				},
 				(payload) => {
-					const raw = payload.new as MessagePayloadType;
-					console.log("New Message:", raw);
-
-					if (raw.user_id === session?.user.id) {
-						const newMessage: Message = {
-							id: raw.id,
-							text: raw.text,
-							media: raw.media,
-							timestamp: raw.created_at,
-							senderId: raw.user_id,
-							chat_id: raw.chat_id,
-							status: "sent",
-						};
-						setMessages((pre) => [...pre, newMessage]);
-					} else {
-						const newMessage: Message = {
-							id: raw.id,
-							text: raw.text,
-							media: raw.media,
-							timestamp: raw.created_at,
-							senderId: raw.user_id,
-							chat_id: raw.chat_id,
-							status: "read",
-						};
-						setMessages((pre) => [...pre, newMessage]);
+					const newMessage = payload.new as MessageType;
+					if (payload.eventType === "INSERT") {
+						console.log("New message inserted:", newMessage);
+						if (newMessage.user_id !== session?.user.id)
+							insertMessage(newMessage);
+					} else if (payload.eventType === "DELETE") {
+						setMessages((prev) =>
+							prev.filter((msg) => msg.id !== newMessage.id)
+						);
+					} else if (payload.eventType === "UPDATE") {
+						setMessages(
+							(pre) =>
+								pre.map((it) =>
+									it.id === newMessage.id ? newMessage : it
+								) as Message[]
+						);
 					}
 				}
 			)
 			.subscribe();
-
 		return () => {
 			supabase.removeChannel(channel);
 		};
 	}, [chatId]);
 
-	const sendMessage = async () => {
+	const insertMessage = (message: MessageType) => {
 		try {
 			const newMessage: Message = {
-				id: 0,
+				id: message.id,
+				text: message.text,
+				media: message.media,
+				timestamp: message.created_at,
+				senderId: message.user_id,
+				chat_id: message.chat_id,
+				status:
+					message.user_id === session?.user.id ? "sent" : "unread",
+			};
+			setMessages((pre) => [...pre, newMessage]);
+		} catch (error) {
+			console.log("Message insertion error:", error);
+		}
+	};
+
+	const deleteMessage = async (messageId: number): Promise<void> => {
+		try {
+			const { error } = await supabase
+				.from("messages")
+				.delete()
+				.eq("id", messageId)
+				.eq("user_id", session?.user.id);
+
+			if (error) throw error;
+			else
+				setMessages((prev) =>
+					prev.filter((msg) => msg.id !== messageId)
+				);
+		} catch (error) {
+			console.error("Delete message error:", error);
+		}
+	};
+
+	const fetchMessages = async () => {
+		try {
+			setIsLoading(true);
+			const chat = await supabase
+				.from("messages")
+				.select("*")
+				.eq("chat_id", chatId);
+
+			if (chat.error) throw chat.error;
+			const oldMessages = chat.data as MessageType[];
+
+			const transformedMessages: Message[] = oldMessages.map((raw) => ({
+				id: raw.id,
+				text: raw.text,
+				media: raw.media,
+				timestamp: raw.created_at,
+				senderId: raw.user_id,
+				chat_id: raw.chat_id,
+				status: session?.user.id === raw.user_id ? "delivered" : "read",
+			}));
+			setMessages(transformedMessages);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "An error occurred");
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const sendMessage = async () => {
+		try {
+			const messageId = Date.now();
+			const newMessage: Message = {
+				id: messageId,
 				chat_id: chatId!,
 				text: inputText,
 				media: null,
@@ -99,38 +152,20 @@ export const useMessage = ({ chatId }: { chatId: number | null }) => {
 				])
 				.select("*");
 			if (result.error) throw result.error;
+			setMessages((prev) =>
+				prev.map((item) =>
+					item.id === messageId
+						? {
+								...item,
+								id: result.data[0].id,
+								status: "delivered",
+						  }
+						: item
+				)
+			);
 			console.log("Sent Message");
 		} catch (error) {
 			console.log("Send Message Error:", error);
-		}
-	};
-
-	const fetchMessages = async () => {
-		try {
-			setIsLoading(true);
-			const chat = await supabase
-				.from("messages")
-				.select("*")
-				.eq("chat_id", chatId);
-
-			if (chat.error) throw chat.error;
-
-			const oldMessages = chat.data as MessagePayloadType[];
-
-			const transformedMessages: Message[] = oldMessages.map((raw) => ({
-				id: raw.id,
-				text: raw.text,
-				media: raw.media,
-				timestamp: raw.created_at,
-				senderId: raw.user_id,
-				chat_id: raw.chat_id,
-				status: "unread",
-			}));
-			setMessages(transformedMessages);
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "An error occurred");
-		} finally {
-			setIsLoading(false);
 		}
 	};
 
@@ -139,40 +174,101 @@ export const useMessage = ({ chatId }: { chatId: number | null }) => {
 			const { data, error } = await supabase
 				.from("chats")
 				.select(
-					`*, chat_members ( *, users ( id, email, first_name, last_name))`
+					`*, chat_members(*, user:users(id, email, first_name, last_name))`
 				)
-				.eq("id", chatId);
+				.eq("id", chatId)
+				.single();
 
 			if (error) throw error;
-			setChat(data[0] as ChatType);
-			console.log("Chats:", data);
+
+			const transformedChatData: ChatType = {
+				id: data.id,
+				chat_title: data.chat_title,
+				created_at: new Date(data.created_at),
+				type: data.type,
+				chat_members: data.chat_members.map((member: any) => ({
+					id: member.user.id,
+					first_name: member.user.first_name,
+					last_name: member.user.last_name,
+					email: member.user.email,
+				})),
+				// Optional fields can be added later if needed
+				avatar: undefined,
+				isOnline: undefined,
+				lastMessage: undefined,
+				unreadCount: undefined,
+			};
+			setChat(transformedChatData);
 		} catch (error) {
 			console.log("Fetch Chat Error:", error);
+		}
+	};
+
+	const getTitle = (item: ChatType | undefined | null) => {
+		if (!item) return "Unknown";
+		return (
+			item.chat_title ||
+			item.chat_members
+				.map((m) =>
+					authUser?.id !== m.id
+						? m.first_name
+							? [m.first_name, m.last_name].join(" ")
+							: m.email.split("@")[0]
+						: null
+				)
+				.filter((it) => it)
+				.join(", ") ||
+			"Personal Chatbox"
+		);
+	};
+
+	const handleMessageLongPress = (message: Message): void => {
+		Alert.alert(
+			"Message Options",
+			"",
+			[
+				{ text: "Reply", onPress: () => setReplyingTo(message) },
+				{
+					text: "Copy",
+					onPress: () => console.log("Copy:", message.text),
+				},
+				message.senderId === session?.user.id && {
+					text: "Delete",
+					style: "destructive",
+					onPress: async () => await deleteMessage(message.id),
+				},
+				{ text: "Cancel", style: "cancel" },
+			].filter(Boolean) as any
+		);
+	};
+
+	const getStatusIcon = (status: Message["status"]): string => {
+		switch (status) {
+			case "sending":
+				return "🕐";
+			case "sent":
+				return "✓";
+			case "delivered":
+				return "✓✓";
+			case "read":
+				return "✓✓";
+			default:
+				return "";
 		}
 	};
 
 	const openNewChat = async (userIds: string[]) => {
 		try {
 			setIsLoading(true);
-			const currentUser = await supabase.auth.getUser();
-			if (!currentUser.data) {
-				throw new Error("No user logged in!");
-			}
-			const newChat = await supabase
-				.from("chats")
-				.insert({ type: "personal" })
-				.select("*");
-			if (newChat.error) throw newChat.error;
-			console.log("NewChat:", newChat.data);
-			const members = await addMembers(newChat.data[0].id, [
-				...userIds,
-				currentUser.data.user?.id!,
-			]);
-			if (members.length > 0) {
-				router.push({
-					pathname: "/message/[chatId]",
-					params: newChat.data[0].id,
-				});
+			const { data, error } = await supabase.rpc("get_or_create_chat", {
+				user_ids: [...userIds, authUser?.id],
+				chat_title:
+					userIds.length === 1 ? "Personal chatbox" : "Group chatbox",
+			});
+			if (error) throw error;
+			else {
+				console.log("New Chat:", data, error);
+				router.push(`/message/${data}`);
 			}
 		} catch (error) {
 			console.log("New Chat Error:", error);
@@ -211,10 +307,15 @@ export const useMessage = ({ chatId }: { chatId: number | null }) => {
 		inputText,
 		setInputText,
 		isTyping,
+		getTitle,
 		setIsTyping,
 		replyingTo,
 		setReplyingTo,
 		openNewChat,
 		sendMessage,
+		deleteMessage,
+		getStatusIcon,
+        addMembers,
+		handleMessageLongPress,
 	};
 };

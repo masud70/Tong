@@ -11,7 +11,7 @@ export const useAuth = () => {
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
-	const setAuthUser = useAuthStore.use.setAuthUser();
+	const setSession = useAuthStore.use.setSession();
 	const router = useRouter();
 
 	const handleAuth = async () => {
@@ -46,7 +46,7 @@ export const useAuth = () => {
 
 				if (error) throw error;
 				else {
-					setAuthUser(data.user);
+					setSession(data.session);
 					router.replace("/(tabs)");
 					console.log("Login successful!", data);
 				}
@@ -64,7 +64,7 @@ export const useAuth = () => {
 			const { error } = await supabase.auth.signOut();
 			if (error) throw error;
 			else {
-				setAuthUser(null);
+				setSession(null);
 				console.log("Signout successful!");
 			}
 		} catch (error) {

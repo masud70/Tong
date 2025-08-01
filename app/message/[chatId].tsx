@@ -1,9 +1,16 @@
+import ProfileImage from "@/components/ProfileImage";
+import ThemedView from "@/components/ThemedView";
+import { Const, styles } from "@/constants/Constants";
 import { useCommon } from "@/hooks/useCommon";
 import { useMessage } from "@/hooks/useMessage";
-import { ChatScreenProps, ChatUser, Message } from "@/types/message";
+import { useTheme } from "@/hooks/useTheme";
+import { Message } from "@/types/message";
 import { useAuthStore } from "@/zustand/stores";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import {
 	ActivityIndicator,
 	Alert,
@@ -17,24 +24,16 @@ import {
 	View,
 } from "react-native";
 
-const currentUserId = "current-user";
-
-const mockChatUser: ChatUser = {
-	id: "other-user",
-	name: "Alice Johnson",
-	avatar: "https://images.unsplash.com/photo-1494790108755-2616b2e59d01?w=100&h=100&fit=crop&crop=face",
-	isOnline: true,
-	lastSeen: new Date(),
-};
-
-const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
+const ChatScreen = () => {
 	const { chatId } = useLocalSearchParams();
 	const router = useRouter();
 	const session = useAuthStore.use.session();
 	const { formatDate, formatTime } = useCommon();
+	const { theme } = useTheme();
 	const {
+		chat,
+		getTitle,
 		messages,
-		setMessages,
 		isTyping,
 		inputText,
 		setInputText,
@@ -42,63 +41,12 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
 		setReplyingTo,
 		sendMessage,
 		isLoading,
+		getStatusIcon,
+		handleMessageLongPress,
 	} = useMessage({ chatId: parseInt(chatId as string) });
 
 	const flatListRef = useRef<FlatList<Message>>(null);
 	const inputRef = useRef<TextInput>(null);
-	const chatUser = route?.params?.chatUser || mockChatUser;
-	const chatName = session?.user.email?.split("@")[0];
-
-	// Auto-scroll to bottom when new messages arrive
-	useEffect(() => {
-		if (messages.length > 0) {
-			setTimeout(() => {
-				flatListRef.current?.scrollToEnd({ animated: true });
-			}, 100);
-		}
-	}, [messages]);
-
-	// Handle long press on message
-	const handleMessageLongPress = (message: Message): void => {
-		Alert.alert(
-			"Message Options",
-			"",
-			[
-				{ text: "Reply", onPress: () => setReplyingTo(message) },
-				{
-					text: "Copy",
-					onPress: () => console.log("Copy:", message.text),
-				},
-				message.senderId === currentUserId && {
-					text: "Delete",
-					style: "destructive",
-					onPress: () => deleteMessage(message.id),
-				},
-				{ text: "Cancel", style: "cancel" },
-			].filter(Boolean) as any
-		);
-	};
-
-	// Delete message
-	const deleteMessage = (messageId: number): void => {
-		setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
-	};
-
-	// Get message status icon
-	const getStatusIcon = (status: Message["status"]): string => {
-		switch (status) {
-			case "sending":
-				return "🕐";
-			case "sent":
-				return "✓";
-			case "delivered":
-				return "✓✓";
-			case "read":
-				return "✓✓";
-			default:
-				return "";
-		}
-	};
 
 	// Render date separator
 	const renderDateSeparator = (date: Date) => (
@@ -141,9 +89,9 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
 					{/* Other user avatar */}
 					{!isOwnMessage && (
 						<View className="mr-2">
-							{chatUser.avatar ? (
+							{chat?.avatar ? (
 								<Image
-									source={{ uri: chatUser.avatar }}
+									source={{ uri: chat?.avatar }}
 									className="w-8 h-8 rounded-full"
 								/>
 							) : (
@@ -169,9 +117,12 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
 						<View
 							className={`px-4 py-3 rounded-2xl ${
 								isOwnMessage
-									? "bg-blue-600 rounded-br-md"
+									? "rounded-br-md"
 									: "bg-gray-200 rounded-bl-md"
 							}`}
+							style={{
+								backgroundColor: Const.color.primaryOpacity,
+							}}
 						>
 							{/* Reply preview */}
 							{repliedMessage && (
@@ -186,7 +137,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
 										className={`text-xs font-medium ${
 											isOwnMessage
 												? "text-blue-200"
-												: "text-gray-600"
+												: "text-white"
 										}`}
 									>
 										{repliedMessage.senderName}
@@ -222,7 +173,10 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
 								isOwnMessage ? "justify-end" : "justify-start"
 							}`}
 						>
-							<Text className="text-gray-500 text-xs mr-1">
+							<Text
+								style={[styles.xsText]}
+								className="text-gray-500 text-xs mr-1"
+							>
 								{formatTime(item.timestamp)}
 							</Text>
 							{isOwnMessage && (
@@ -244,39 +198,49 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
 	};
 
 	return (
-		<View className="flex-1 bg-white">
+		<ThemedView className="flex-1">
 			{/* Header */}
-			<View className="bg-white px-4 py-3 border-b border-gray-100 flex-row items-center">
+			<View
+				style={{ backgroundColor: theme.color.primary }}
+				className="px-4 py-3 border-b border-gray-100 flex-row items-center"
+			>
 				<TouchableOpacity
 					onPress={() => router.back()}
-					className="p-1"
+					className="px-2"
 					hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
 				>
-					<Text className="text-blue-600 text-2xl font-bold">←</Text>
+					<FontAwesome5
+						name="arrow-left"
+						size={20}
+						color={theme.color.simple}
+					/>
 				</TouchableOpacity>
 
 				{/* User info */}
 				<View className="flex-row items-center flex-1">
-					<Image
-						source={
-							!chatUser.avatar
-								? { uri: chatUser.avatar }
-								: require("@/assets/images/tong.png")
-						}
-						className="w-10 h-10 rounded-full mr-3"
+					<ProfileImage
+						isGroup={chat?.type === "group"}
+						className="mr-2"
 					/>
 
 					<View className="flex-1">
 						<Text
-							className="text-gray-900 font-semibold text-base"
 							numberOfLines={1}
+							style={[
+								styles.smallTextBold,
+								{ color: theme.color.simple },
+							]}
 						>
-							{chatName}
+							{getTitle(chat)}
 						</Text>
-						<Text className="text-gray-500 text-sm">
-							{chatUser.isOnline
-								? "Online"
-								: "Last seen recently"}
+						<Text
+							style={[
+								styles.xsText,
+								styles.subText,
+								{ color: theme.color.simple },
+							]}
+						>
+							{chat?.isOnline ? "Online" : "Last seen recently"}
 						</Text>
 					</View>
 				</View>
@@ -292,7 +256,11 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
 						}}
 						className="p-2 mr-1"
 					>
-						<Text className="text-gray-600 text-lg">📞</Text>
+						<FontAwesome5
+							name="phone-alt"
+							size={18}
+							color={theme.color.simple}
+						/>
 					</TouchableOpacity>
 					<TouchableOpacity
 						onPress={() => {
@@ -303,7 +271,11 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
 						}}
 						className="p-2"
 					>
-						<Text className="text-gray-600 text-lg">📹</Text>
+						<FontAwesome5
+							name="video"
+							size={18}
+							color={theme.color.simple}
+						/>
 					</TouchableOpacity>
 				</View>
 			</View>
@@ -323,6 +295,9 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
 					showsVerticalScrollIndicator={false}
 					className="flex-1 bg-gray-50"
 					contentContainerStyle={{ paddingVertical: 8 }}
+					onContentSizeChange={() =>
+						flatListRef.current?.scrollToEnd({ animated: true })
+					}
 				/>
 			)}
 
@@ -332,7 +307,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
 					<View className="flex-row items-center">
 						<View className="w-8 h-8 rounded-full bg-gray-300 items-center justify-center mr-2">
 							<Text className="text-gray-600 text-xs font-semibold">
-								{chatUser.name.charAt(0).toUpperCase()}
+								{getTitle(chat).charAt(0).toUpperCase()}
 							</Text>
 						</View>
 						<View className="bg-gray-200 px-4 py-2 rounded-2xl rounded-bl-md">
@@ -372,17 +347,37 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
 			{/* Input area */}
 			<KeyboardAvoidingView
 				behavior={Platform.OS === "ios" ? "padding" : undefined}
-				keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+				keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
 			>
 				<View className="bg-white border-t border-gray-100 px-4 py-2">
 					<View className="flex-row items-center">
 						{/* Attachment button */}
-						<TouchableOpacity className="p-2">
-							<Text className="text-gray-500 text-xl">📎</Text>
+						<TouchableOpacity
+							className="mr-1"
+							onPress={() =>
+								Alert.alert(
+									"Comming soon",
+									"This feature is comming very soon..."
+								)
+							}
+						>
+							<Ionicons
+								name="add-circle-outline"
+								size={30}
+								color={theme.color.text}
+							/>
 						</TouchableOpacity>
 
 						{/* Text input */}
-						<View className="flex-1 max-h-24 bg-gray-100 rounded-2xl px-3 py-1 mr-2">
+						<View
+							style={[
+								{
+									backgroundColor:
+										theme.color.inputBackground,
+								},
+							]}
+							className="flex-1  rounded-2xl px-3 py-1 mr-1"
+						>
 							<TextInput
 								ref={inputRef}
 								className="text-gray-900 text-base min-h-6"
@@ -391,27 +386,47 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
 								value={inputText}
 								onChangeText={setInputText}
 								multiline
+								numberOfLines={2}
 								textAlignVertical="center"
 								onSubmitEditing={sendMessage}
+								style={[styles.smallText]}
 							/>
 						</View>
 
 						{/* Send button */}
 						<TouchableOpacity
-							onPress={sendMessage}
-							className={`w-10 h-10 rounded-full items-center justify-center ${
-								inputText.trim() ? "bg-blue-600" : "bg-gray-300"
-							}`}
-							disabled={!inputText.trim()}
+							onPress={
+								inputText.trim()
+									? sendMessage
+									: () =>
+											Alert.alert(
+												"Comming soon",
+												"This feature is comming very soon..."
+											)
+							}
+							style={{
+								backgroundColor: inputText.trim()
+									? theme.color.primary
+									: theme.color.inputBackground,
+							}}
+							className={`w-12 h-12 rounded-full items-center justify-center`}
 						>
-							<Text className="text-white text-lg font-bold">
-								{inputText.trim() ? "→" : "🎤"}
-							</Text>
+							{inputText.trim() ? (
+								<FontAwesome
+									name="send"
+									size={22}
+									color={theme.color.simple}
+								/>
+							) : (
+								<Text className="text-white text-lg font-bold">
+									🎤
+								</Text>
+							)}
 						</TouchableOpacity>
 					</View>
 				</View>
 			</KeyboardAvoidingView>
-		</View>
+		</ThemedView>
 	);
 };
 

@@ -5,30 +5,23 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 
 export const useRoot = () => {
-	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
-	// const [session, setSession] = useState<Session | null>(null);
 	const [isInitialized, setIsInitialized] = useState<boolean>(false);
-	const router = useRouter();
 	const setAuthSession = useAuthStore.use.setSession();
-	// const isInitialized = useAuthStore.use.isInitialized();
-	// const setIsInitialized = useAuthStore.use.setIsInitialized();
+	const router = useRouter();
 
 	useEffect(() => {
 		console.log("App initialized:", isInitialized);
 		if (!isInitialized) initialization();
-		else {
-			// Listen to session changes
-			supabase.auth.onAuthStateChange((_event, session) => {
-				console.log("Auth state changed:", _event);
-				// setSession(session);
-				setAuthSession(session);
-				if (!session) {
-					console.log("No session found, redirecting to auth");
-					router.replace("/auth");
-				}
-			});
-		}
+		// Listen to session changes
+		supabase.auth.onAuthStateChange((_event, session) => {
+			console.log("Auth state changed:", _event);
+			setAuthSession(session);
+			if (!session) {
+				console.log("No session found, redirecting to auth");
+				router.replace("/auth");
+			}
+		});
 	}, [isInitialized]);
 
 	const initialization = async () => {
@@ -44,13 +37,8 @@ export const useRoot = () => {
 			} else {
 				console.log("Welcome back to our Tong message app!");
 				supabase.auth.getSession().then(({ data: { session } }) => {
-					// setSession(session);
 					setAuthSession(session);
-					if (session) {
-						router.replace("/(tabs)");
-					} else {
-						router.replace("/auth");
-					}
+					router.replace(session ? "/(tabs)/profile" : "/auth");
 				});
 			}
 		} catch (error) {
@@ -60,7 +48,7 @@ export const useRoot = () => {
 				console.log("App initialized!");
 				setIsLoading(false);
 				setIsInitialized(true);
-			}, 3000);
+			}, 2000);
 		}
 	};
 
@@ -74,9 +62,6 @@ export const useRoot = () => {
 	};
 
 	return {
-		isLoggedIn,
-		setIsLoggedIn,
 		isLoading,
-		setIsLoading,
 	};
 };

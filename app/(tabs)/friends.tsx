@@ -1,17 +1,16 @@
+import CustomSearchInput from "@/components/CustomSearchInput";
 import FriendListCard from "@/components/FriendListCard";
 import FriendRequestCard from "@/components/FriendRequestCard";
+import Loading from "@/components/LoadingIndicator";
 import ThemedView from "@/components/ThemedView";
+import { styles } from "@/constants/Constants";
 import { useFriend } from "@/hooks/useFriend";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import React from "react";
 import {
-	ActivityIndicator,
 	KeyboardAvoidingView,
 	Platform,
 	ScrollView,
 	Text,
-	TextInput,
-	TouchableOpacity,
 	View,
 } from "react-native";
 
@@ -19,75 +18,87 @@ const Friends = () => {
 	const {
 		searchTerm,
 		setSearchTerm,
-		handleSearch,
 		isLoading,
+		isSearching,
 		friends,
 		friendRequests,
 		myFriends,
+		searchFriends,
 	} = useFriend();
 	return (
-		<ThemedView className="px-4 pt-2 pb-1">
+		<ThemedView className="flex-1">
 			<KeyboardAvoidingView
 				behavior={Platform.OS === "ios" ? "padding" : undefined}
 				className="flex-1"
 			>
-				<View className="mb-2 justify-center">
-					<TextInput
-						editable
-						placeholderTextColor="#999"
-						placeholder="Search friends here..."
+				<View className="px-2 py-2 border-b border-gray-300">
+					<CustomSearchInput
+						onPress={searchFriends}
+						searching={isSearching}
 						value={searchTerm}
+						needCancel={friends.length !== 0}
 						onChangeText={setSearchTerm}
-						className="rounded-full bg-gray-200 px-3 py-3 text-lg w-full absolute"
+						placeholder="Search friends here..."
+						keyboardType="email-address"
+						onPressCancel={() => setSearchTerm("")}
 					/>
-					{isLoading ? (
-						<ActivityIndicator
-							size={28}
-							color={"#344D67"}
-							className="bg-[#344D67]/20 hover:bg-[#344D67] p-2 w-12 left-[88%] h-12 rounded-full items-center justify-center relative"
-						/>
-					) : (
-						<TouchableOpacity
-							onPress={handleSearch}
-							className="bg-[#344D67]/20 hover:bg-[#344D67] p-2 w-12 left-[88%] h-12 rounded-full items-center justify-center relative"
-						>
-							<Ionicons
-								name="search"
-								size={24}
-								color={"#344D67"}
-								className="text-white"
-							/>
-						</TouchableOpacity>
-					)}
 				</View>
 
-				<ScrollView
-					showsVerticalScrollIndicator={false}
-					className="flex-1"
-				>
-					<View className="gap-1">
-						{searchTerm ? (
-							friends.map((friend) => (
-								<FriendListCard key={friend.id} user={friend} />
-							))
-						) : friendRequests.length ? (
-							<View className="w-full gap-1">
-								<Text className="w-full text-center text-white border-b border-white mb-1 text-lg">
-									Friend requests
-								</Text>
-								{friendRequests.map((request) => (
-									<FriendRequestCard
-										key={request.id}
-										request={request}
+				{isLoading ? (
+					<Loading style={{ marginTop: 20 }} />
+				) : (
+					<ScrollView
+						showsVerticalScrollIndicator={false}
+						className="flex-1 px-1 mt-1"
+					>
+						<View className="gap-1">
+							{searchTerm ? (
+								friends.map((friend) => (
+									<FriendListCard
+										key={friend.id}
+										user={friend}
 									/>
-								))}
-							</View>
-						) : null}
-						{myFriends.map((f, idx) => (
-							<FriendListCard key={idx} user={f} />
-						))}
-					</View>
-				</ScrollView>
+								))
+							) : (
+								<>
+									{friendRequests.length ? (
+										<View className="w-full gap-1">
+											<Text
+												style={[styles.regularTextBold]}
+												className="w-full text-center border-b pb-1 border-gray-200"
+											>
+												Friend requests
+											</Text>
+											{friendRequests.map((request) => (
+												<FriendRequestCard
+													key={request.id}
+													request={request}
+												/>
+											))}
+										</View>
+									) : null}
+
+									{myFriends.length ? (
+										<View className="w-full gap-1">
+											<Text
+												style={[styles.regularTextBold]}
+												className="w-full text-center border-b pb-1 border-gray-200"
+											>
+												My friends
+											</Text>
+											{myFriends.map((f, idx) => (
+												<FriendListCard
+													key={idx}
+													user={f}
+												/>
+											))}
+										</View>
+									) : null}
+								</>
+							)}
+						</View>
+					</ScrollView>
+				)}
 			</KeyboardAvoidingView>
 		</ThemedView>
 	);
