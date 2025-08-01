@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { Friend } from "@/types/friends";
 import { useAuthStore } from "@/zustand/stores";
 import { showAlert } from "@/zustand/util/alert";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 
 export const useFriend = () => {
@@ -68,7 +68,7 @@ export const useFriend = () => {
 			setIsLoading(false);
 		}
 	};
-	const fetchFriendRequests = useCallback(async () => {
+	const fetchFriendRequests = async () => {
 		try {
 			setIsLoading(true);
 			const { data: requesters, error: requestError } = await supabase
@@ -90,22 +90,24 @@ export const useFriend = () => {
 
 			if (usersError) throw usersError;
 
-			setFriendRequests(
-				requests.map((f) => ({
-					id: f.id,
-					email: f.email,
-					phone: f.phone,
-					bio: f.bio,
-					avatar: f.avatar,
-					displayName: f.display_name,
-					createdAt: f.created_at,
-					isFriend: false,
-				})) as Friend[]
-			);
+			const transformedRequests = requests.map((f) => ({
+				id: f.id,
+				email: f.email,
+				phone: f.phone,
+				bio: f.bio,
+				avatar: f.avatar,
+				displayName: f.display_name,
+				createdAt: f.created_at,
+				isFriend: false,
+			})) as Friend[];
+
+			console.log("Transformed FR:", transformedRequests);
+
+			setFriendRequests(transformedRequests);
 		} catch (error) {
 			console.log("Error fetching friend requests:", error);
 		}
-	}, [friendRequests]);
+	};
 	const searchFriends = async () => {
 		try {
 			setIsSearching(true);

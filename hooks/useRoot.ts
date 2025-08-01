@@ -48,7 +48,7 @@ export const useRoot = () => {
 				console.log("App initialized!");
 				setIsLoading(false);
 				setIsInitialized(true);
-			}, 2000);
+			}, 3000);
 		}
 	};
 

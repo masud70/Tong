@@ -75,16 +75,67 @@
 
 // export default ThemedView;
 
+// import { useTheme } from "@/hooks/useTheme";
+// import React from "react";
+// import {
+// 	KeyboardAvoidingView,
+// 	Platform,
+// 	SafeAreaView,
+// 	ViewProps,
+// 	ViewStyle,
+// } from "react-native";
+// import "react-native-reanimated";
+// import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+// type TViewProps = ViewProps & {
+// 	style?: ViewStyle | ViewStyle[];
+// 	children: React.ReactNode;
+// };
+
+// const ThemedView: React.FC<TViewProps> = ({ style, children, ...props }) => {
+// 	const insets = useSafeAreaInsets();
+// 	const { theme } = useTheme();
+
+// 	return (
+// 		<SafeAreaView
+// 			style={[
+// 				{
+// 					flex: 1,
+// 					backgroundColor: theme.color.background,
+// 					// paddingTop: insets.top,
+// 					paddingBottom: insets.bottom,
+// 					paddingLeft: insets.left,
+// 					paddingRight: insets.right,
+// 				},
+// 				style,
+// 			]}
+// 			{...props}
+// 		>
+// 			<KeyboardAvoidingView
+// 				style={[{ flex: 1 }]}
+// 				// key={forceUpdateKey}
+// 				behavior={Platform.OS === "ios" ? "padding" : undefined}
+// 				keyboardVerticalOffset={insets.top} // tune if header present
+// 				{...props}
+// 			>
+// 				{children}
+// 			</KeyboardAvoidingView>
+// 		</SafeAreaView>
+// 	);
+// };
+
+// export default ThemedView;
+
 import { useTheme } from "@/hooks/useTheme";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
+	AppState,
 	KeyboardAvoidingView,
 	Platform,
 	SafeAreaView,
 	ViewProps,
 	ViewStyle,
 } from "react-native";
-import "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type TViewProps = ViewProps & {
@@ -96,27 +147,41 @@ const ThemedView: React.FC<TViewProps> = ({ style, children, ...props }) => {
 	const insets = useSafeAreaInsets();
 	const { theme } = useTheme();
 
+	// Force re-render on app resume
+	const [refreshKey, setRefreshKey] = useState(0);
+	useEffect(() => {
+		const sub = AppState.addEventListener("change", (state) => {
+			if (state === "active") {
+				setRefreshKey((k) => k + 1);
+			}
+		});
+		return () => sub.remove();
+	}, []);
+
+	const keyboardOffset = insets.top || 55; // fallback if top inset is 0
+
 	return (
 		<SafeAreaView
 			style={[
 				{
 					flex: 1,
 					backgroundColor: theme.color.background,
-					// paddingTop: insets.top,
 					paddingBottom: insets.bottom,
 					paddingLeft: insets.left,
 					paddingRight: insets.right,
+					flexDirection: "row",
+					alignItems: "center",
+					justifyContent: "center",
 				},
 				style,
 			]}
 			{...props}
 		>
 			<KeyboardAvoidingView
-				style={[{ flex: 1 }]}
-				// key={forceUpdateKey}
+				key={refreshKey}
+				style={{ flex: 1 }}
 				behavior={Platform.OS === "ios" ? "padding" : undefined}
-				keyboardVerticalOffset={insets.top} // tune if header present
-				{...props}
+				keyboardVerticalOffset={keyboardOffset}
 			>
 				{children}
 			</KeyboardAvoidingView>

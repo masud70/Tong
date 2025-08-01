@@ -37,30 +37,5 @@ export default function RootLayout() {
 				/>
 			</Stack>
 		</ThemedView>
-
-		// <TView style={{ paddingTop: insets.top }}>
-		// 	<StatusBar style="auto" />
-		// 	{!isLoggedIn ? (
-		// 		<Stack
-		// 			screenOptions={{
-		// 				headerShown: false,
-		// 			}}
-		// 		>
-		// 			<Stack.Screen
-		// 				name="auth/index"
-		// 				options={{ title: "Home" }}
-		// 			/>
-		// 		</Stack>
-		// 	) : (
-		// 		<Stack
-		// 			screenOptions={{
-		// 				headerShown: false,
-		// 			}}
-		// 		>
-		// 			<Stack.Screen name="(tabs)" />
-		// 			<Stack.Screen name="+not-found" />
-		// 		</Stack>
-		// 	)}
-		// </TView>
 	);
 }
