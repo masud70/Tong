@@ -25,7 +25,7 @@ export const useFriend = () => {
 		}
 	}, [searchTerm]);
 
-	const fetchMyFriends = useCallback(async () => {
+	const fetchMyFriends = async () => {
 		try {
 			setIsLoading(true);
 			const { data: friendships, error: friendsError } = await supabase
@@ -49,24 +49,25 @@ export const useFriend = () => {
 
 			if (usersError) throw usersError;
 
-			setMyFriends(
-				friends.map((f) => ({
-					id: f.id,
-					email: f.email,
-					firstName: f.first_name,
-					lastName: f.last_name,
-					displayName: f.first_name
-						? f.first_name + " " + f.last_name
-						: f.email.split("@")[0],
-					isFriend: true,
-				})) as Friend[]
-			);
+			const searchedFriends = friends.map((f) => ({
+				id: f.id,
+				email: f.email,
+				phone: f.phone,
+				bio: f.bio,
+				avatar: f.avatar,
+				displayName: f.display_name,
+				createdAt: f.created_at,
+				isFriend: true,
+				friendsSince: new Date(),
+			})) as Friend[];
+
+			setMyFriends(searchedFriends);
 		} catch (error) {
 			console.log("Error fetching myFriends:", error);
 		} finally {
 			setIsLoading(false);
 		}
-	}, []);
+	};
 	const fetchFriendRequests = useCallback(async () => {
 		try {
 			setIsLoading(true);
@@ -93,18 +94,18 @@ export const useFriend = () => {
 				requests.map((f) => ({
 					id: f.id,
 					email: f.email,
-					firstName: f.first_name,
-					lastName: f.last_name,
-					displayName: f.first_name
-						? f.first_name + " " + f.last_name
-						: f.email.split("@")[0],
+					phone: f.phone,
+					bio: f.bio,
+					avatar: f.avatar,
+					displayName: f.display_name,
+					createdAt: f.created_at,
 					isFriend: false,
 				})) as Friend[]
 			);
 		} catch (error) {
 			console.log("Error fetching friend requests:", error);
 		}
-	}, []);
+	}, [friendRequests]);
 	const searchFriends = async () => {
 		try {
 			setIsSearching(true);
@@ -117,16 +118,16 @@ export const useFriend = () => {
 			const searchedFriends = data.map((f: any) => ({
 				id: f.id,
 				email: f.email,
-				firstName: f.first_name,
-				lastName: f.last_name,
-				displayName: f.display_name || f.email.split("@")[0],
+				phone: f.phone,
+				bio: f.bio,
+				avatar: f.avatar,
+				displayName: f.display_name,
+				createdAt: f.created_at,
 				isFriend: f.is_friend,
-				friendSince: f.friends_since,
+				friendsSince: f.friends_since,
 			})) as Friend[];
 
 			setFriends(searchedFriends);
-
-			console.log("Search results:", searchedFriends);
 		} catch (error) {
 			console.log("Search friend error:", error);
 		} finally {
@@ -136,6 +137,20 @@ export const useFriend = () => {
 	const sendFriendRequest = async (friendId: string) => {
 		try {
 			setIsLoading(true);
+			const { data: exist, error: existError } = await supabase
+				.from("friends")
+				.select("*")
+				.match({ user_id: authUser?.id, friend_id: friendId });
+			if (existError) {
+				throw existError;
+			} else if (exist.length > 0) {
+				showAlert(
+					"Request Already Sent",
+					"You have sent a friend request already."
+				);
+				return;
+			}
+
 			const { data, error } = await supabase
 				.from("friends")
 				.insert([
@@ -150,15 +165,19 @@ export const useFriend = () => {
 
 			if (error) throw error;
 
+			console.log("Friend req data:", data);
+
 			if (data) {
-				setFriendRequests(
+				setFriends(
 					(pre) =>
 						pre.map((f) =>
-							f.id === data.id
+							f.id === data.user_id
 								? {
 										...f,
 										requested: true,
-										requestedBy: data.requestedBy,
+										friendsSince: data.created_at,
+										isFriend: false,
+										requestedBy: authUser?.id,
 										requestedAt: data.created_at,
 								  }
 								: f
@@ -240,8 +259,15 @@ export const useFriend = () => {
 
 							if (result.error) throw result.error;
 							else {
-								setFriends((pre) =>
-									pre.filter((f) => f.id !== friendId)
+								setFriends(
+									(pre) =>
+										pre.map((f) => ({
+											...f,
+											friendsSince:
+												f.id === friendId
+													? null
+													: f.friendsSince,
+										})) as Friend[]
 								);
 								console.log(
 									"Friend request cancelled successfully:",
@@ -275,5 +301,6 @@ export const useFriend = () => {
 		friendRequests,
 		searchFriends,
 		fetchFriendRequests,
+		fetchMyFriends,
 	};
 };

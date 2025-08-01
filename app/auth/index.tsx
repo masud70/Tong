@@ -12,8 +12,6 @@ import React, { useEffect, useRef } from "react";
 import {
 	Animated,
 	Image,
-	KeyboardAvoidingView,
-	Platform,
 	ScrollView,
 	Text,
 	TouchableOpacity,
@@ -99,12 +97,13 @@ export default function Index() {
 
 	return (
 		<ThemedView>
+			{/* <GradientBackground> */}
 			<ScrollView
 				contentContainerStyle={{ flexGrow: 1 }}
 				showsVerticalScrollIndicator={false}
-				className="flex-1 px-6"
+				
+				className="flex-1 px-6 py-4"
 			>
-				{/* <GradientBackground> */}
 				{/* Animated Background Elements */}
 				<View className="absolute inset-0">
 					<Animated.View
@@ -181,108 +180,108 @@ export default function Index() {
 						</Text>
 					</View>
 
-					<KeyboardAvoidingView
+					{/* <KeyboardAvoidingView
 						behavior={Platform.OS === "ios" ? "padding" : undefined}
-						keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+						// className="flex-1"
+					> */}
+					{/* Input Fields */}
+					<View
+						style={[{ marginBottom: 30, marginTop: 30 }]}
+						className="gap-2"
 					>
-						{/* Input Fields */}
-						<View
-							style={[{ marginBottom: 30, marginTop: 30 }]}
-							className="gap-2 bg-white/10 rounded-2xl border border-white/20"
-						>
-							<CustomInput
-								placeholder="Enter your email"
-								onChangeText={setEmail}
-								value={email}
-								keyboardType={"email-address"}
-								autoComplete="email"
-							/>
-							<CustomInput
-								placeholder="Enter your password"
-								onChangeText={setPassword}
-								value={password}
-								autoComplete="password"
-								secureTextEntry={!showPassword}
-								onClickIcon={() => setShowPassword((p) => !p)}
-								rightIcon={
-									<Ionicons
-										name={showPassword ? "eye-off" : "eye"}
-										size={20}
-									/>
-								}
-							/>
-							{/* Confirm Password (Sign Up only) */}
-							{isSignUp && (
-								<CustomInput
-									placeholder="Confirm your password"
-									value={confirmPassword}
-									onChangeText={setConfirmPassword}
-									secureTextEntry={!showPassword}
-									autoComplete="password"
-								/>
-							)}
-						</View>
-
-						<CustomButton
-							backgroundColor="primary"
-							text={
-								isSignUp
-									? isLoading
-										? "Creating account..."
-										: "Create Account"
-									: isLoading
-									? "Signing in..."
-									: "Sign In"
-							}
-							onPress={handleAuth}
-							disabled={isLoading}
+						<CustomInput
+							placeholder="Enter your email"
+							onChangeText={setEmail}
+							value={email}
+							keyboardType={"email-address"}
+							autoComplete="email"
+						/>
+						<CustomInput
+							placeholder="Enter your password"
+							onChangeText={setPassword}
+							value={password}
+							autoComplete="password"
+							secureTextEntry={!showPassword}
+							onClickIcon={() => setShowPassword((p) => !p)}
 							rightIcon={
-								isLoading ? (
-									<Loading size={22} color={"white"} />
-								) : null
+								<Ionicons
+									name={showPassword ? "eye-off" : "eye"}
+									size={20}
+								/>
 							}
 						/>
+						{/* Confirm Password (Sign Up only) */}
+						{isSignUp && (
+							<CustomInput
+								placeholder="Confirm your password"
+								value={confirmPassword}
+								onChangeText={setConfirmPassword}
+								secureTextEntry={!showPassword}
+								autoComplete="password"
+							/>
+						)}
+					</View>
 
-						{/* Toggle Auth Mode */}
-						<TouchableOpacity
-							className="items-center py-4"
-							onPress={toggleAuthMode}
+					<CustomButton
+						backgroundColor="primary"
+						text={
+							isSignUp
+								? isLoading
+									? "Creating account..."
+									: "Create Account"
+								: isLoading
+								? "Signing in..."
+								: "Sign In"
+						}
+						onPress={handleAuth}
+						disabled={isLoading}
+						rightIcon={
+							isLoading ? (
+								<Loading size={22} color={"white"} />
+							) : null
+						}
+					/>
+
+					{/* Toggle Auth Mode */}
+					<TouchableOpacity
+						className="items-center py-4"
+						onPress={toggleAuthMode}
+					>
+						<Text
+							style={[
+								styles.smallText,
+								{ color: theme.color.text },
+							]}
 						>
-							<Text
-								style={[
-									styles.smallText,
-									{ color: theme.color.text },
-								]}
-							>
-								{isSignUp ? (
-									<>
-										Already have an account?{" "}
-										<Text
-											style={[
-												styles.smallTextBold,
-												{ color: theme.color.primary },
-											]}
-										>
-											Sign In
-										</Text>
-									</>
-								) : (
-									<>
-										Don&apos;t have an account?{" "}
-										<Text
-											style={[
-												styles.smallTextBold,
-												{ color: theme.color.primary },
-											]}
-										>
-											Sign Up
-										</Text>{" "}
-										now.
-									</>
-								)}
-							</Text>
-						</TouchableOpacity>
-					</KeyboardAvoidingView>
+							{isSignUp ? (
+								<>
+									Already have an account?{" "}
+									<Text
+										style={[
+											styles.smallTextBold,
+											{ color: theme.color.primary },
+										]}
+									>
+										Sign In
+									</Text>
+								</>
+							) : (
+								<>
+									Don&apos;t have an account?{" "}
+									<Text
+										style={[
+											styles.smallTextBold,
+											{ color: theme.color.primary },
+										]}
+									>
+										Sign Up
+									</Text>{" "}
+									now.
+								</>
+							)}
+						</Text>
+					</TouchableOpacity>
+					{/* </KeyboardAvoidingView> */}
 
 					{/* Footer */}
 					<View className="items-center pb-8">
@@ -297,6 +296,7 @@ export default function Index() {
 				</Animated.View>
 				{/* </GradientBackground> */}
 			</ScrollView>
+			{/* </GradientBackground> */}
 		</ThemedView>
 	);
 }

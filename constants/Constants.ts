@@ -4,6 +4,8 @@ export const Const = {
 	color: {
 		background: "#0f2032",
 		primaryOpacity: "#23B82BB5",
+        backgroundGray: "#F2F2F2",
+        backgroundGrayDeep: "#DFDFDF"
 	},
 	text: {
 		size: {
@@ -26,7 +28,7 @@ export const Const = {
 	buttonColor: {
 		primary: "#23B82B",
 		secondary: "#FFBC4C",
-		danger: "#FF2B22",
+		danger: "#DC2626CC",
 		transparent: "transparent",
 	},
 };

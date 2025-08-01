@@ -22,7 +22,7 @@ export const useChat = () => {
 			const { data, error } = await supabase
 				.from("chat_members")
 				.select(
-					`chat:chats(id, chat_title, created_at, type, chat_members(user:users(id, email, first_name, last_name)))`
+					`chat:chats(id, chat_title, created_at, type, avatar, chat_members(user:users(id, email, display_name)))`
 				)
 				.eq("user_id", authUser?.id);
 
@@ -36,19 +36,16 @@ export const useChat = () => {
 						type: chat.type,
 						chat_members: chat.chat_members.map((member: any) => ({
 							id: member.user.id,
-							first_name: member.user.first_name,
-							last_name: member.user.last_name,
 							email: member.user.email,
+							displayName: member.user.display_name,
 						})),
-						// Optional fields can be added later if needed
-						avatar: undefined,
+						avatar: chat.avatar,
 						isOnline: undefined,
 						lastMessage: undefined,
-						unreadCount: undefined,
+						unreadCount: 0,
 					};
 				}
 			);
-
 			if (error) throw error;
 			setChats(transformedChats);
 		} catch (error) {

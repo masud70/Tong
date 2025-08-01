@@ -13,7 +13,7 @@ import {
 import Loading from "./LoadingIndicator";
 
 interface CustomSearchInputProps extends TextInputProps {
-	onPress: () => void;
+	onPress?: () => void;
 	searching?: boolean;
 	needCancel?: boolean;
 	onPressCancel?: () => void;
@@ -48,10 +48,10 @@ const CustomSearchInput = ({
 			</Pressable>
 			<TouchableOpacity
 				onPress={onPress}
-				disabled={searching}
+				disabled={searching && !onPress}
 				className="h-full w-10 mr-1 justify-center flex-row flex items-center"
 			>
-				{searching ? (
+				{searching && !!onPress ? (
 					<Loading size={25} color={theme.color.foreground} />
 				) : (
 					<Ionicons

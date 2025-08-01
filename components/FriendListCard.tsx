@@ -9,15 +9,10 @@ import Loading from "./LoadingIndicator";
 import ProfileImage from "./ProfileImage";
 
 const FriendListCard = ({ user }: { user: Friend }) => {
-	const {
-		isLoading,
-		sendFriendRequest,
-		acceptFriendRequest,
-		cancelFriendRequest,
-	} = useFriend();
-	const { openNewChat } = useMessage({ chatId: 0 });
+	const { isLoading, sendFriendRequest, cancelFriendRequest } = useFriend();
+	const { openNewChat } = useMessage();
 	const { theme } = useTheme();
-
+	console.log(user);
 	return (
 		<View className="border border-gray-300 rounded-md p-2 flex flex-row items-center justify-between">
 			<View className="flex flex-row items-center gap-2">
@@ -34,13 +29,11 @@ const FriendListCard = ({ user }: { user: Friend }) => {
 
 			<TouchableOpacity
 				onPress={
-					user.isFriend
-						? async () => await openNewChat([user.id])
-						: user.requested
-						? user.requestedBy === user.id
-							? () => acceptFriendRequest(user.id)
-							: () => cancelFriendRequest(user.id)
-						: () => sendFriendRequest(user.id)
+					user.friendsSince
+						? user.isFriend
+							? async () => await openNewChat([user.id])
+							: async () => await cancelFriendRequest(user.id)
+						: async () => await sendFriendRequest(user.id)
 				}
 				disabled={isLoading}
 				className="rounded-full px-3 py-2 items-center"
@@ -48,11 +41,9 @@ const FriendListCard = ({ user }: { user: Friend }) => {
 					{
 						backgroundColor: isLoading
 							? theme.color.primaryOpacity
-							: user.isFriend
-							? theme.color.primary
-							: user.requested
-							? user.requestedBy === user.id
-								? theme.color.tertiary
+							: user.friendsSince
+							? user.isFriend
+								? theme.color.primary
 								: theme.color.danger
 							: theme.color.tertiary,
 						minWidth: 85,
@@ -68,11 +59,9 @@ const FriendListCard = ({ user }: { user: Friend }) => {
 							{ color: theme.color.simple },
 						]}
 					>
-						{user.isFriend
-							? "Chat Now"
-							: user.requested
-							? user.requestedBy === user.id
-								? "Accept"
+						{user.friendsSince
+							? user.isFriend
+								? "Chat Now"
 								: "Cancel"
 							: "Add Friend"}
 					</Text>

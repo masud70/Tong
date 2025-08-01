@@ -20,14 +20,13 @@ import {
 
 const Chats = () => {
 	const { theme } = useTheme();
-	const { formatDT } = useCommon();
+	const { formatDT, getTitle } = useCommon();
 	const authUser = useAuthStore.use.authUser();
 	const {
 		searchTerm,
 		setSearchTerm,
 		chats,
 		fetchChats,
-		handleSearch,
 		isSearching,
 		isLoading,
 		handleChatPress,
@@ -37,26 +36,9 @@ const Chats = () => {
 	const filteredChats = useMemo(() => {
 		if (!searchTerm.trim()) return chats;
 		return chats.filter((chat) =>
-			chat.chat_title?.toLowerCase().includes(searchTerm.toLowerCase())
+			getTitle(chat).toLowerCase().includes(searchTerm.toLowerCase())
 		);
 	}, [chats, searchTerm]);
-
-	const getTitle = (item: ChatType) => {
-		return (
-			item.chat_title ||
-			item.chat_members
-				.map((m) =>
-					authUser?.id !== m.id
-						? m.first_name
-							? [m.first_name, m.last_name].join(" ")
-							: m.email.split("@")[0]
-						: null
-				)
-				.filter((it) => it)
-				.join(", ") ||
-			"Personal Chatbox"
-		);
-	};
 
 	// Render individual chat item
 	const renderChatItem = ({ item }: { item: ChatType }) => (
@@ -85,7 +67,7 @@ const Chats = () => {
 							{ color: theme.color.text },
 						]}
 					>
-						{getTitle(item)}
+						{getTitle(item, authUser?.id!)}
 					</Text>
 					<Text style={[styles.xsText, styles.subText]}>
 						{formatDT(new Date(item.created_at))}
@@ -147,7 +129,7 @@ const Chats = () => {
 			<View className="px-2 py-2 border-b border-gray-300">
 				{/* Search Input */}
 				<CustomSearchInput
-					onPress={handleSearch}
+					// onPress={handleSearch}
 					searching={isSearching}
 					value={searchTerm}
 					onChangeText={setSearchTerm}
@@ -160,6 +142,13 @@ const Chats = () => {
 			{isLoading ? (
 				<Loading style={{ marginTop: 20 }} />
 			) : (
+				// <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+				// 	{filteredChats.length > 0
+				// 		? filteredChats.map((chat, idx) => (
+				// 				<RenderChatItem key={idx} item={chat} />
+				// 		  ))
+				// 		: renderEmptyState()}
+				// </ScrollView>
 				<FlatList
 					data={filteredChats}
 					keyExtractor={(item) => item.id.toString()}

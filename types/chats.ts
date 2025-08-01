@@ -20,9 +20,8 @@ export interface ChatType {
 	type: "personal" | "group";
 	chat_members: {
 		id: string;
-		first_name: string;
-		last_name: string;
 		email: string;
+		displayName: string;
 	}[];
 }
 

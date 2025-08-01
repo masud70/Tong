@@ -38,7 +38,7 @@ export const useRoot = () => {
 				console.log("Welcome back to our Tong message app!");
 				supabase.auth.getSession().then(({ data: { session } }) => {
 					setAuthSession(session);
-					router.replace(session ? "/(tabs)/profile" : "/auth");
+					router.replace(session ? "/(tabs)" : "/auth");
 				});
 			}
 		} catch (error) {

@@ -66,6 +66,7 @@ export const useAuth = () => {
 			else {
 				setSession(null);
 				console.log("Signout successful!");
+				router.replace("/auth");
 			}
 		} catch (error) {
 			console.error("Sign out error:", error);

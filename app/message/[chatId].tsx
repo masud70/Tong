@@ -28,11 +28,10 @@ const ChatScreen = () => {
 	const { chatId } = useLocalSearchParams();
 	const router = useRouter();
 	const session = useAuthStore.use.session();
-	const { formatDate, formatTime } = useCommon();
+	const { formatDate, formatTime, getTitle } = useCommon();
 	const { theme } = useTheme();
 	const {
 		chat,
-		getTitle,
 		messages,
 		isTyping,
 		inputText,
@@ -43,10 +42,11 @@ const ChatScreen = () => {
 		isLoading,
 		getStatusIcon,
 		handleMessageLongPress,
-	} = useMessage({ chatId: parseInt(chatId as string) });
+	} = useMessage(parseInt(chatId as string));
 
 	const flatListRef = useRef<FlatList<Message>>(null);
 	const inputRef = useRef<TextInput>(null);
+	const chatTitle = getTitle(chat, session?.user.id);
 
 	// Render date separator
 	const renderDateSeparator = (date: Date) => (
@@ -96,10 +96,8 @@ const ChatScreen = () => {
 								/>
 							) : (
 								<View className="w-8 h-8 rounded-full bg-gray-300 items-center justify-center">
-									<Text className="text-gray-600 text-xs font-semibold">
-										{session?.user.email
-											?.charAt(0)
-											.toUpperCase()}
+									<Text style={[styles.xsText]}>
+										{chatTitle?.charAt(0).toUpperCase()}
 									</Text>
 								</View>
 							)}
@@ -121,7 +119,9 @@ const ChatScreen = () => {
 									: "bg-gray-200 rounded-bl-md"
 							}`}
 							style={{
-								backgroundColor: Const.color.primaryOpacity,
+								backgroundColor: isOwnMessage
+									? Const.color.primaryOpacity
+									: Const.color.backgroundGrayDeep,
 							}}
 						>
 							{/* Reply preview */}
@@ -157,6 +157,7 @@ const ChatScreen = () => {
 
 							{/* Message text */}
 							<Text
+								style={[styles.xsText]}
 								className={`text-base ${
 									isOwnMessage
 										? "text-white"
@@ -231,7 +232,7 @@ const ChatScreen = () => {
 								{ color: theme.color.simple },
 							]}
 						>
-							{getTitle(chat)}
+							{chatTitle}
 						</Text>
 						<Text
 							style={[
@@ -307,7 +308,7 @@ const ChatScreen = () => {
 					<View className="flex-row items-center">
 						<View className="w-8 h-8 rounded-full bg-gray-300 items-center justify-center mr-2">
 							<Text className="text-gray-600 text-xs font-semibold">
-								{getTitle(chat).charAt(0).toUpperCase()}
+								{chatTitle.charAt(0).toUpperCase()}
 							</Text>
 						</View>
 						<View className="bg-gray-200 px-4 py-2 rounded-2xl rounded-bl-md">

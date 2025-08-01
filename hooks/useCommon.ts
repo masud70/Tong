@@ -1,11 +1,14 @@
+import { ChatType } from "@/types/chats";
 import { format } from "date-fns";
 import { Dimensions } from "react-native";
 
 export const useCommon = () => {
 	const { width, height } = Dimensions.get("window");
+
 	const formatDT = (date: Date) => {
 		return format(date, "dd-MM-yy hh:mm a");
 	};
+
 	const formatTime = (date: Date): string => {
 		try {
 			date = new Date(date);
@@ -38,5 +41,19 @@ export const useCommon = () => {
 		}
 	};
 
-	return { width, height, formatDT, formatTime, formatDate };
+	const getTitle = (
+		item: ChatType | undefined | null,
+		authUserId?: string
+	) => {
+		if (!item) return "Anonymous Chat";
+		return (
+			item.chat_title ||
+			item.chat_members
+				.map((m) => (authUserId !== m.id ? m.displayName : null))
+				.filter((it) => it)
+				.join(", ")
+		);
+	};
+
+	return { width, height, formatDT, formatTime, formatDate, getTitle };
 };

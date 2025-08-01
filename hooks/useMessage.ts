@@ -6,7 +6,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 
-export const useMessage = ({ chatId }: { chatId: number | null }) => {
+export const useMessage = (chatId?: number | null) => {
 	const [chat, setChat] = useState<ChatType>();
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [inputText, setInputText] = useState<string>("");
@@ -174,7 +174,7 @@ export const useMessage = ({ chatId }: { chatId: number | null }) => {
 			const { data, error } = await supabase
 				.from("chats")
 				.select(
-					`*, chat_members(*, user:users(id, email, first_name, last_name))`
+					`*, chat_members(*, user:users(id, email, display_name))`
 				)
 				.eq("id", chatId)
 				.single();
@@ -188,38 +188,19 @@ export const useMessage = ({ chatId }: { chatId: number | null }) => {
 				type: data.type,
 				chat_members: data.chat_members.map((member: any) => ({
 					id: member.user.id,
-					first_name: member.user.first_name,
-					last_name: member.user.last_name,
 					email: member.user.email,
+					displayName: member.user.display_name,
 				})),
 				// Optional fields can be added later if needed
-				avatar: undefined,
+				avatar: data.avatar,
 				isOnline: undefined,
 				lastMessage: undefined,
-				unreadCount: undefined,
+				unreadCount: 0,
 			};
 			setChat(transformedChatData);
 		} catch (error) {
 			console.log("Fetch Chat Error:", error);
 		}
-	};
-
-	const getTitle = (item: ChatType | undefined | null) => {
-		if (!item) return "Unknown";
-		return (
-			item.chat_title ||
-			item.chat_members
-				.map((m) =>
-					authUser?.id !== m.id
-						? m.first_name
-							? [m.first_name, m.last_name].join(" ")
-							: m.email.split("@")[0]
-						: null
-				)
-				.filter((it) => it)
-				.join(", ") ||
-			"Personal Chatbox"
-		);
 	};
 
 	const handleMessageLongPress = (message: Message): void => {
@@ -262,8 +243,6 @@ export const useMessage = ({ chatId }: { chatId: number | null }) => {
 			setIsLoading(true);
 			const { data, error } = await supabase.rpc("get_or_create_chat", {
 				user_ids: [...userIds, authUser?.id],
-				chat_title:
-					userIds.length === 1 ? "Personal chatbox" : "Group chatbox",
 			});
 			if (error) throw error;
 			else {
@@ -307,7 +286,6 @@ export const useMessage = ({ chatId }: { chatId: number | null }) => {
 		inputText,
 		setInputText,
 		isTyping,
-		getTitle,
 		setIsTyping,
 		replyingTo,
 		setReplyingTo,
@@ -315,7 +293,7 @@ export const useMessage = ({ chatId }: { chatId: number | null }) => {
 		sendMessage,
 		deleteMessage,
 		getStatusIcon,
-        addMembers,
+		addMembers,
 		handleMessageLongPress,
 	};
 };

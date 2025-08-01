@@ -9,6 +9,7 @@ import React from "react";
 import {
 	KeyboardAvoidingView,
 	Platform,
+	RefreshControl,
 	ScrollView,
 	Text,
 	View,
@@ -24,6 +25,7 @@ const Friends = () => {
 		friendRequests,
 		myFriends,
 		searchFriends,
+		fetchMyFriends,
 	} = useFriend();
 	return (
 		<ThemedView className="flex-1">
@@ -50,6 +52,14 @@ const Friends = () => {
 					<ScrollView
 						showsVerticalScrollIndicator={false}
 						className="flex-1 px-1 mt-1"
+						refreshControl={
+							<RefreshControl
+								refreshing={isLoading}
+								onRefresh={
+									searchTerm ? searchFriends : fetchMyFriends
+								}
+							/>
+						}
 					>
 						<View className="gap-1">
 							{searchTerm ? (

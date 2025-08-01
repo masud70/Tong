@@ -16,13 +16,13 @@ export default function TabLayout() {
 				tabBarActiveTintColor: theme.color.tint,
 				headerShown: true,
 				headerStyle: {
-					height: 50,
+					height: 55,
 					backgroundColor: theme.color.primary,
 				},
 				headerTitleStyle: {
 					fontSize: 25,
 					color: theme.color.tint,
-                    fontFamily: 'RobotoBold'
+					fontFamily: "RobotoBold",
 				},
 				headerTitleAlign: "center",
 				tabBarButton: HapticTab,
@@ -35,7 +35,7 @@ export default function TabLayout() {
 				},
 				tabBarLabelStyle: {
 					fontSize: 14,
-                    fontFamily: 'RobotoSemiBold',
+					fontFamily: "RobotoSemiBold",
 					color: theme.color.text,
 				},
 			}}
